@@ -1,1 +1,1 @@
-# JS-projects
+# Password manager app 
