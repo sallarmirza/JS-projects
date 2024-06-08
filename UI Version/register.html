@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cipher Shield - Registration</title>
+    <style>
+		.navbar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #007BFF;
+            color: #ffffff;
+            padding: 10px 0; 
+        }
+
+        .navbar a {
+            margin: 0 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .navbar a:hover {
+            background-color: #0056b3;
+        }
+		
+		.container {
+            text-align: center;
+            padding: 50px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            margin: 20px; 
+        }
+		
+		.logo {
+            display: inline-block;
+            margin-right: 10px;
+        }
+		
+		h1 {
+            font-size: 48px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+		
+		p {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+		
+        form {
+            margin-top: 20px;
+			text-align: justify;
+			box-sizing: border-box;
+			border: 1px solid #ccc; 
+			padding: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+			text-align: justify; 
+        }
+
+        input {
+            padding: 8px;
+            margin-bottom: 10px;
+            width: 40%;
+        }
+		
+		button {
+			padding: 10px 20px;
+			font-size: 18px;
+			color: #ffffff;
+			background-color: green; 
+			border: 1px solid #ccc; 
+			border-radius: 5px;
+			cursor: pointer;
+			margin-top: auto;
+		}
+		.required::before {
+            content: "* ";
+            color: red;
+        }
+		
+		#pinError {
+            color: red;
+            margin-top: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="index.html">Home</a>
+        <a href="login.html">Login</a>
+        <a href="displayuser.html">View Users</a>
+        <a href="deluser.html">Delete Users</a>
+    </div>
+    <div class="container">
+        <div class="logo">
+            <img src="shield logo.jpg" alt="Logo" width="40">
+        </div>
+        <h1>Cipher Shield - Registration</h1>
+        <p>Securely register your account with Cipher Shield.</p>
+
+        <form id="registrationForm">
+            <label for="username">Enter Username:</label>
+            <input type="text" id="username" name="username" required>
+		
+            <label for="name">Enter Full Name:</label>
+            <input type="text" id="name" name="name" required>
+
+            <label for="email">Enter Email:</label>
+            <input type="email" id="email" name="email" required>
+			
+			<label for="pin">Enter Pin:</label>
+            <input type="password" id="pin" name="pin" required>
+			<div id="pinError" class="error-message"></div>
+
+        </form>
+		
+		<button type="button" onclick="registerUser()">Register</button>
+
+        <p id="registrationMessage"></p>
+
+    </div>
+
+    <script>
+		var usersData = [];
+		class UserData {
+			constructor() {
+			this.name = '';
+			this.username = '';
+			this.email = '';
+			this.pin = '';
+			}
+		}
+
+		// Now, let's use this class in the registration logic
+		
+		async function hashPin(pin) {
+			let hash = 5381; // Initial value
+
+			for (let i = 0; i < pin.length; i++) {
+				const char = pin.charCodeAt(i);
+				hash = (hash * 33) ^ char; // Mixing bits with a prime number
+			}
+
+			return hash >>> 0; // Ensure the hash is a positive integer
+		}
+
+		async function registerUser() {
+			const pinInput = document.getElementById('pin');
+			const usernameInput = document.getElementById('username');
+			const nameInput = document.getElementById('name');
+			const emailInput = document.getElementById('email');
+			const registrationMessage = document.getElementById('registrationMessage');
+			const pinError = document.getElementById('pinError');
+
+			// Validate PIN
+			if (pinInput.value === "") {
+				pinError.textContent = "PIN is required.";
+				pinError.style.display = "block";
+				return; // Exit function if validation fails
+			} else {
+				pinError.textContent = "";
+				pinError.style.display = "none";
+				const pin = pinInput.value;
+				
+				const hashedPin = await hashPin(pin);
+				
+					// Create a new UserData object
+					const userData = new UserData();
+					userData.name = nameInput.value;
+					userData.username = usernameInput.value;
+					userData.email = emailInput.value;
+					userData.pin = hashedPin;
+
+					// Simulate a server response
+					const registrationSuccess = true; 
+
+						// Send user data to the PHP script for database insertion
+					const response = await fetch('registration.php', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/x-www-form-urlencoded',
+						},
+						body: `name=${userData.name}&username=${userData.username}&email=${userData.email}&pin=${userData.pin}`,
+					});
+					
+					let result;
+					try {
+						result = await response.json();
+
+						if (result && result.registrationSuccess) {
+							registrationMessage.textContent = result.message;
+							// Reset form fields
+							pinInput.value = '';
+							usernameInput.value = '';
+							nameInput.value = '';
+							emailInput.value = '';
+						} else {
+							registrationMessage.textContent = result.message;
+						}
+					} catch (error) {
+						registrationMessage.textContent = result.message;
+					}
+					
+			}
+
+		}
+		
+    </script>
+</body>
+</html>

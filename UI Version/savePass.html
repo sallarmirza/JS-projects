@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cipher Shield - Save Passwords</title>
+    <style>
+		.navbar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #007BFF;
+            color: #ffffff;
+            padding: 10px 0; 
+        }
+
+        .navbar a {
+            margin: 0 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .navbar a:hover {
+            background-color: #0056b3;
+        }
+		
+		.container {
+            text-align: center;
+            padding: 50px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            margin: 20px; 
+        }
+		
+		.logo {
+            display: inline-block;
+            margin-right: 10px;
+        }
+		
+		h1 {
+            font-size: 48px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+		
+		p {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+		
+		p2 {
+            font-size: 22px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+		
+        form {
+            margin-top: 20px;
+			text-align: justify;
+			box-sizing: border-box;
+			border: 1px solid #ccc; 
+			padding: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+			text-align: justify; 
+        }
+
+        input {
+            padding: 8px;
+            margin-bottom: 10px;
+            width: 40%;
+        }
+		
+		button {
+			padding: 10px 20px;
+			font-size: 18px;
+			color: #ffffff;
+			background-color: green; 
+			border: 1px solid #ccc; 
+			border-radius: 5px;
+			cursor: pointer;
+			margin-top: auto;
+		}
+		.required::before {
+            content: "* ";
+            color: red;
+        }
+		
+		#pinError {
+            color: red;
+            margin-top: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+		<a href="dashboard.html">Home</a>
+        <a href="savePass.html">Save Password</a>
+        <a href="viewPass.html">View Password</a>
+		<a href="delPass.html">Delete Password</a>
+        <a href="checkPass.html">Check Strength</a>
+		<a href="index.html">LogOut</a>
+    </div>
+    <div class="container">
+        <div class="logo">
+            <img src="shield logo.jpg" alt="Logo" width="40">
+        </div>
+        <h1>Cipher Shield - Save Password</h1>
+		
+		<p2>Save Yours Passwords, Passwords are end to end Encrypted.</p2>
+
+
+        <form id="SavePassForm">
+            <label for="website">Enter Website/App:</label>
+            <input type="text" id="website" name="website" required>
+				
+			<label for="password">Enter Password:</label>
+            <input type="password" id="password" name="Password" required>
+			<div id="passError" class="error-message"></div>
+
+        </form>
+		
+		<button type="button" onclick="savePass()">Save</button>
+
+        <p id="passSaveMessage"></p>
+
+    </div>
+
+    <script>
+		var passData = [];
+		class PassData {
+			constructor() {
+			this.website = '';
+			this.password = '';
+			}
+		}
+		
+		async function encrypt(text, key) {
+			let result = '';
+			for (let i = 0; i < text.length; i++) {
+				let textChar = text.charAt(i);
+				let keyChar = key.charAt(i % key.length);
+
+				// Perform encryption on ASCII values and convert back to character
+				let encryptedChar = String.fromCharCode((textChar.charCodeAt(0) + keyChar.charCodeAt(0)) % 128);
+
+				result += encryptedChar;
+			}
+
+			return result;
+		}
+
+		async function savePass() {
+			const passInput = document.getElementById('password');
+			const websiteInput = document.getElementById('website');
+
+			const passSaveMessage = document.getElementById('passSaveMessage');
+			const passError = document.getElementById('passError');
+
+			// Validate PIN
+			if (passInput.value === "") {
+				passError.textContent = "Password is required.";
+				passError.style.display = "block";
+				return; // Exit function if validation fails
+			} else {
+				passError.textContent = "";
+				passError.style.display = "none";
+				const pass = passInput.value;
+				
+				const key = "bse";
+				const encryptPass = await encrypt(pass, key);
+				
+					// Create a new UserData object
+					const passData = new PassData();
+					passData.website = websiteInput.value;
+					passData.pass = encryptPass;
+
+					// Simulate a server response
+					const savePassSuccess = true; 
+
+						// Send user data to the PHP script for database insertion
+					const response = await fetch('savePass.php', {
+						method: 'POST',
+						headers: {
+							'Content-Type': 'application/x-www-form-urlencoded',
+						},
+						body: `website=${passData.website}&pass=${passData.pass}`,
+					});
+					
+					let data;
+
+					try {
+						data = await response.json();
+						
+						if (data.success) {
+							passSaveMessage.textContent = data.message;
+							// Reset form fields
+							passInput.value = '';
+							websiteInput.value = '';
+						} else {
+							passSaveMessage.textContent = data.message;
+						}
+					} catch (error) {
+						passSaveMessage.textContent = "An error occurred while processing your request.";
+						console.error("Error:", error);
+					}
+					
+			}
+
+		}
+		
+    </script>
+</body>
+</html>

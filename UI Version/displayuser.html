@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cipher Shield - Display User</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column; 
+            background-color: #f5f5f5;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #007BFF;
+            color: #ffffff;
+            padding: 10px 0; 
+        }
+
+        .navbar a {
+            margin: 0 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .navbar a:hover {
+            background-color: #0056b3;
+        }
+
+        .container {
+            text-align: center;
+            padding: 50px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            margin: 20px; 
+        }
+
+        .logo {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        h1 {
+            font-size: 48px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        p {
+            font-size: 32px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+		
+		.user-container {
+            text-align: left;
+            margin-top: 20px;
+        }
+
+        .user-item {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        #displayMessage {
+            font-size: 18px;
+            color: #333;
+            margin-top: 20px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="index.html">Home</a>
+        <a href="login.html">Login</a>
+        <a href="displayuser.html">View Users</a>
+        <a href="deluser.html">Delete Users</a>
+    </div>
+    <div class="container">
+        <div class="logo">
+            <img src="shield logo.jpg" alt="Logo" width="40">
+        </div>
+        <h1>Cipher Shield - Active Users</h1>
+		
+		<!-- User container to display usernames -->
+        <div class="user-container" id="userContainer"></div>
+
+        <!-- Display message element -->
+        <p id="displayMessage"></p>
+		
+    </div>
+	<script>
+        async function displayUsers() {
+			try {
+				// Fetch user data from the server
+				const response = await fetch('displayuser.php');
+				
+				// Check if the response status is OK (200)
+				if (!response.ok) {
+					throw new Error(`Failed to fetch user data. Status: ${response.status}`);
+				}
+
+				const data = await response.json();
+
+				// Get the display message element
+				const displayMessage = document.getElementById('displayMessage');
+
+				// Check if user data was successfully retrieved
+				if (data && data.usersData) {
+					const usersData = data.usersData;
+
+					// Display usernames of all users
+					if (usersData.length > 0) {
+						const userContainer = document.getElementById('userContainer');
+						userContainer.innerHTML = ''; // Clear previous content
+
+						usersData.forEach((user, index) => {
+							const userItem = document.createElement('p');
+							userItem.className = 'user-item';
+							userItem.textContent = `${index + 1}. ${user.username}`;
+							userContainer.appendChild(userItem);
+						});
+
+						// Show success message
+						displayMessage(`User data retrieved successfully.`);
+					} else {
+						// Show message if no users found
+						displayMessage.textContent = "No users found.";
+					}
+				} else {
+					// Show message if data retrieval failed
+					displayLoginErrorMessage('Failed to retrieve user data.');
+				}
+			} catch (error) {
+				console.error(error.message);
+				// Handle error, e.g., display an error message
+				const displayMessage = document.getElementById('displayMessage');
+				displayErrorMessage('Error fetching user data.');
+			}
+		}
+
+		function displayMessage(message) {
+			window.alert(message);
+		}
+
+		function displayErrorMessage(message) {
+			window.alert(message);
+		}
+		
+		displayUsers() 
+
+		
+    </script>
+</body>
+</html>

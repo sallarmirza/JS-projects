@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cipher Shield - Login</title>
+    <style>
+		.navbar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #007BFF;
+            color: #ffffff;
+            padding: 10px 0; 
+        }
+
+        .navbar a {
+            margin: 0 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .navbar a:hover {
+            background-color: #0056b3;
+        }
+		
+		.container {
+            text-align: center;
+            padding: 50px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            margin: 20px; 
+        }
+		
+		.logo {
+            display: inline-block;
+            margin-right: 10px;
+        }
+		
+		h1 {
+            font-size: 48px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+		
+		p {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+		
+        form {
+            margin-top: 20px;
+			text-align: justify;
+			box-sizing: border-box;
+			border: 1px solid #ccc; 
+			padding: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+			text-align: justify; 
+        }
+
+        input {
+            padding: 8px;
+            margin-bottom: 10px;
+            width: 40%;
+        }
+		
+		button {
+			padding: 10px 20px;
+			font-size: 18px;
+			color: #ffffff;
+			background-color: green; 
+			border: 1px solid #ccc; 
+			border-radius: 5px;
+			cursor: pointer;
+			margin-top: auto;
+		}
+		.required::before {
+            content: "* ";
+            color: red;
+        }
+		
+		#pinError {
+            color: red;
+            margin-top: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="index.html">Home</a>
+        <a href="login.html">Login</a>
+        <a href="displayuser.html">View Users</a>
+        <a href="deluser.html">Delete Users</a>
+    </div>
+    <div class="container">
+        <div class="logo">
+            <img src="shield logo.jpg" alt="Logo" width="40">
+        </div>
+        <h1>Cipher Shield - Login</h1>
+
+        <form id="loginForm">
+            <label for="username">Enter Username:</label>
+            <input type="text" id="username" name="username" required>
+			
+			<label for="pin">Enter Pin:</label>
+            <input type="password" id="pin" name="pin" required>
+			<div id="pinError" class="error-message"></div>
+
+        </form>
+		
+		
+        <button class="login-button" onclick="login()">Login</button>
+
+		
+
+    </div>
+
+    <script>
+	
+		document.querySelector('.login-button').addEventListener('click', redirectToDashboard);
+		
+		async function hashPin(pin) {
+			let hash = 5381; // Initial value
+
+			for (let i = 0; i < pin.length; i++) {
+				const char = pin.charCodeAt(i);
+				hash = (hash * 33) ^ char; // Mixing bits with a prime number
+			}
+
+			return hash >>> 0; // Ensure the hash is a positive integer
+		}
+		
+		async function login() {
+			try {
+				const usernameInput = document.getElementById('username');
+				const pinInput = document.getElementById('pin');
+
+				const username = usernameInput.value;
+				const pin = pinInput.value;
+				let hashedPin;
+
+				try {
+					hashedPin = await hashPin(pin);
+				} catch (hashError) {
+					console.error(hashError);
+					displayLoginErrorMessage('An error occurred hashing the PIN. Please try again.');
+					return;
+				}
+				
+				const response = await fetch('login.php', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/x-www-form-urlencoded',
+					},
+					body: `username=${username}&pin=${hashedPin}`,
+				});
+
+				if (!response.ok) {
+					throw new Error(`Server responded with ${response.status}: ${response.statusText}`);
+				}
+
+				const result = await response.json();
+
+				if (result.loginSuccess) {
+					displayLoginMessage('Login successful! Welcome to the Dashboard.');
+					// Redirect to Dashboard.html with the messages
+					window.location.href = "dashboard.html";
+				} else {
+					displayLoginErrorMessage('Login failed. Please check your credentials.');
+				}			
+				
+			} catch (error) {
+				console.error(error);
+				displayLoginErrorMessage('An error occurred. Please try again.');
+			}
+		}
+		
+		function displayLoginMessage(message) {
+			window.alert(message);
+		}
+
+		function displayLoginErrorMessage(message) {
+			window.alert(message);
+		}
+			
+    </script>
+</body>
+</html>

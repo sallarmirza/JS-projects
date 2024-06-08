@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cipher Shield - Password Strength</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column; 
+            background-color: #f5f5f5;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #007BFF;
+            color: #ffffff;
+            padding: 10px 0; 
+        }
+
+        .navbar a {
+            margin: 0 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .navbar a:hover {
+            background-color: #0056b3;
+        }
+
+        .container {
+            text-align: center;
+            padding: 50px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            margin: 20px; 
+        }
+
+        form {
+            margin-top: 20px;
+            text-align: justify;
+            box-sizing: border-box;
+            border: 1px solid #ccc; 
+            padding: 20px;
+        }
+
+        .logo {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        h1 {
+            font-size: 48px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        p {
+            font-size: 32px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+
+        button, .Check-button {
+            padding: 10px 20px;
+            font-size: 18px;
+            color: #ffffff;
+            background-color: #333;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px; 
+        }
+
+        #checkMessage {
+            font-size: 18px;
+            margin-top: 10px;
+        }
+
+        /* Updated styles for password strength colors */
+        #checkMessage.too-weak {
+            color: red;
+        }
+
+        #checkMessage.weak {
+            color: orange;
+        }
+
+        #checkMessage.moderate {
+            color: yellow;
+        }
+
+        #checkMessage.strong {
+            color: green;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <a href="dashboard.html">Home</a>
+        <a href="savePass.html">Save Password</a>
+        <a href="viewPass.html">View Password</a>
+        <a href="delPass.html">Delete Password</a>
+        <a href="checkPass.html">Check Strength</a>
+        <a href="index.html">LogOut</a>
+    </div>
+    <div class="container">
+        <div class="logo">
+            <img src="shield logo.jpg" alt="Logo" width="40">
+        </div>
+        <h1>Cipher Shield - Check Password Strength</h1>
+
+        <form id="checkPasswordForm">
+            <label for="pass">Enter Password:</label>
+            <input type="text" id="pass" name="pass" required>
+            <div id="pinError" class="error-message"></div>
+        </form>
+
+        <button type="button" onclick="checkPass()">Check</button>
+        <p id="checkMessage"></p>
+    </div>
+
+    <script>
+        function checkPass() {
+            var password = document.getElementById("pass").value;
+
+            var hasSmall = false;
+            var hasCapital = false;
+            var hasDigit = false;
+            var hasSpecial = false;
+
+            for (var i = 0; i < password.length; i++) {
+                var ch = password.charAt(i);
+
+                if (ch.match(/[a-z]/)) {
+                    hasSmall = true;
+                } else if (ch.match(/[A-Z]/)) {
+                    hasCapital = true;
+                } else if (ch.match(/[0-9]/)) {
+                    hasDigit = true;
+                } else if (ch.match(/[^a-zA-Z0-9]/)) {
+                    hasSpecial = true;
+                }
+            }
+
+            var strengthMessage = "";
+
+            if (hasSmall && !hasCapital && !hasDigit && !hasSpecial) {
+                strengthMessage = "Password Strength: Too Weak (Only Small Alphabets)";
+                document.getElementById("checkMessage").className = "too-weak";
+            } else if (hasSmall && hasCapital && !hasDigit && !hasSpecial) {
+                strengthMessage = "Password Strength: Weak (Small and Capital Alphabets)";
+                document.getElementById("checkMessage").className = "weak";
+            } else if (hasSmall && hasCapital && hasDigit && !hasSpecial) {
+                strengthMessage = "Password Strength: Moderate (Alphanumeric)";
+                document.getElementById("checkMessage").className = "moderate";
+            } else if (hasSmall && hasCapital && hasDigit && hasSpecial) {
+                strengthMessage = "Password Strength: Strong (Alphanumeric + Special Characters)";
+                document.getElementById("checkMessage").className = "strong";
+            } else {
+                strengthMessage = "Password Strength: Unknown";
+                document.getElementById("checkMessage").className = "";
+            }
+
+            document.getElementById("checkMessage").innerHTML = strengthMessage;
+        }
+    </script>
+</body>
+</html>

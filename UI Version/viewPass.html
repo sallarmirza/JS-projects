@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cipher Shield - View Passwords</title>
+    <style>
+        .navbar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #007BFF;
+            color: #ffffff;
+            padding: 10px 0; 
+        }
+
+        .navbar a {
+            margin: 0 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+            color: #ffffff;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .navbar a:hover {
+            background-color: #0056b3;
+        }
+        
+        .container {
+            text-align: center;
+            padding: 50px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+            margin: 20px; 
+        }
+        
+        .logo {
+            display: inline-block;
+            margin-right: 10px;
+        }
+        
+        h1 {
+            font-size: 48px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        p {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        p2 {
+            font-size: 22px;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        table {
+            width: 50%;
+            margin-left: auto;
+            margin-right: auto;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        tr:hover {
+            background-color: #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+		<a href="dashboard.html">Home</a>
+        <a href="savePass.html">Save Password</a>
+        <a href="viewPass.html">View Password</a>
+		<a href="delPass.html">Delete Password</a>
+        <a href="checkPass.html">Check Strength</a>
+		<a href="index.html">LogOut</a>
+    </div>
+
+    <div class="container">
+        <div class="logo">
+            <img src="shield logo.jpg" alt="Logo" width="40">
+        </div>
+        <h1>Cipher Shield - View Saved Passwords</h1>
+
+        <!-- Display Password data container -->
+        <div class="passDataContainer" id="passDataContainer"></div>
+
+        <!-- Display message element -->
+        <p id="displayMessage"></p>
+    </div>
+
+    <script>
+        // decrypt function
+        function decrypt(encryptedText, key) {
+            let result = '';
+
+            for (let i = 0; i < encryptedText.length; i++) {
+                let encryptedChar = encryptedText.charCodeAt(i);
+                let keyChar = key.charCodeAt(i % key.length);
+
+                let decryptedChar = String.fromCharCode((encryptedChar - keyChar + 128) % 128);
+
+                result += decryptedChar;
+            }
+
+            return result;
+        }
+
+        async function displayPass() {
+            try {
+                const response = await fetch('viewPass.php');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                console.log('Received data:', data);
+
+                const passDataContainer = document.getElementById('passDataContainer');
+                if (passDataContainer) {
+                    if (data.error) {
+                        console.error(data.error);
+                    } else if (data.userData) {
+                        let passwordTableHTML = '<table><thead><tr><th>Sr. No.</th><th>Website</th><th>Password</th></tr></thead><tbody>';
+
+                        // Iterate through each retrieved password data
+                        data.userData.forEach((passwordData, index) => {
+
+                            if (passwordData.pass) {
+                                // Decrypt the password
+                                const decryptedPassword = decrypt(passwordData.pass, 'bse');
+
+                                passwordTableHTML += `
+                                    <tr>
+                                        <td>${index + 1}</td>
+                                        <td>${passwordData.website}</td>
+                                        <td>${decryptedPassword}</td>
+                                    </tr>
+                                `;
+                            } else {
+                                console.error(`Missing 'pass' property in passwordData: ${JSON.stringify(passwordData)}`);
+                            }
+                        });
+
+                        passwordTableHTML += '</tbody></table>';
+
+                        passDataContainer.innerHTML = passwordTableHTML;
+                    } else {
+                        console.error('Unexpected response from server');
+                    }
+                } else {
+                    console.error('passDataContainer not found');
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', displayPass);
+    </script>
+</body>
+</html>
